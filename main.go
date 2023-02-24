@@ -9,16 +9,29 @@ import (
 // :set expandtab
 
 type Bar struct {
-    x int;
-    y int;
-    width int;
-    height int;
-    color termloop.Attr;
+    *termloop.Rectangle
+    prevX int
+    prevY int
+    level *termloop.BaseLevel
 }
 
 func renderBar(level *termloop.BaseLevel) {
-    bar := Bar { 56, 43, 30, 1, termloop.ColorRed }
-    level.AddEntity(termloop.NewRectangle(bar.x, bar.y, bar.width, bar.height, bar.color))
+    bar := Bar {
+       Rectangle: termloop.NewRectangle(65, 48, 30, 1, termloop.ColorRed), 
+       level: level,
+    }
+    level.AddEntity(&bar)
+}
+
+func (bar *Bar) Tick(event termloop.Event) {
+   if(event.Type == termloop.EventKey) {  // If it is a keyboard event
+        bar.prevX, bar.prevY = bar.Position()
+        switch(event.Key) {
+            case termloop.KeyArrowLeft : bar.SetPosition(bar.prevX - 2, bar.prevY)   
+            case termloop.KeyArrowRight : bar.SetPosition(bar.prevX + 2, bar.prevY)   
+            default: return
+        }
+   } 
 }
 
 func main() {
