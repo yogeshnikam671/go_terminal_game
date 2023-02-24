@@ -38,6 +38,13 @@ func (ball *Ball) Tick(event termloop.Event) {
     ball.SetPosition(ball.prevX + 1, ball.prevY)
 }
 
+// func (ball *Ball) Collide(collision termloop.Physical) {
+// 	// Check if it's a Rectangle we're colliding with
+// 	if _, ok := collision.(*termloop.Rectangle); ok {
+//
+// 	}
+// }
+
 func renderBar(level *termloop.BaseLevel) {
     bar := Bar {
        Rectangle: termloop.NewRectangle(65, 48, 30, 1, termloop.ColorRed), 
@@ -58,6 +65,12 @@ func (bar *Bar) Tick(event termloop.Event) {
    } 
 }
 
+func renderBorders(level *termloop.BaseLevel) {
+    level.AddEntity(termloop.NewRectangle(0, 0, 500, 1, termloop.ColorBlue))
+    level.AddEntity(termloop.NewRectangle(0, 0, 1, 500, termloop.ColorBlue))
+    level.AddEntity(termloop.NewRectangle(161, 0, 1, 500, termloop.ColorBlue))
+}
+
 func main() {
     game := termloop.NewGame()
     game.Screen().SetFps(30)
@@ -65,9 +78,10 @@ func main() {
         Bg: termloop.ColorBlack,
         Fg: termloop.ColorBlack,
     })
+    renderBorders(level)
     renderBar(level)
     renderBall(level)
-
+    
     game.Screen().SetLevel(level)
     game.Start()
 }
