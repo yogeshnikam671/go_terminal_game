@@ -1,6 +1,7 @@
 package main
 
 import (
+        "github.com/yogeshnikam671/go_term_game/borders" 
 	"github.com/JoelOtter/termloop"
 )
 
@@ -25,70 +26,6 @@ type Ball struct {
     prevX int
     prevY int
     level *termloop.BaseLevel
-}
-
-type TopBorder struct {
-    *termloop.Entity
-    prevX int
-    prevY int
-    level *termloop.BaseLevel
-}
-
-type DeathBorder struct {
-    *termloop.Entity
-    prevX int
-    prevY int
-    level *termloop.BaseLevel
-}
-
-type LeftBorder struct {
-    *termloop.Entity
-    prevX int
-    prevY int
-    level *termloop.BaseLevel
-}
-
-type RightBorder struct {
-    *termloop.Entity
-    prevX int
-    prevY int
-    level *termloop.BaseLevel
-}
-
-func renderTopBorder(level *termloop.BaseLevel) {
-    topBorder := TopBorder {
-        Entity: termloop.NewEntity(0, 0, 500, 1),
-        level: level,
-    }
-    topBorder.Fill(&termloop.Cell { Bg: termloop.ColorBlue })
-    level.AddEntity(&topBorder)
-}
-
-func renderDeathBorder(level *termloop.BaseLevel) {
-    deathBorder := DeathBorder {
-        Entity: termloop.NewEntity(0, 50, 500, 1),
-        level: level,
-    }
-    deathBorder.Fill(&termloop.Cell { Bg: termloop.ColorRed })
-    level.AddEntity(&deathBorder)
-}
-
-func renderLeftBorder(level *termloop.BaseLevel) {
-    leftBorder := LeftBorder {
-        Entity: termloop.NewEntity(0, 0, 1, 500),
-        level: level,
-    }
-    leftBorder.Fill(&termloop.Cell{ Bg: termloop.ColorBlue })
-    level.AddEntity(&leftBorder)
-}
-
-func renderRightBorder(level *termloop.BaseLevel) {
-    rightBorder := RightBorder {
-        Entity: termloop.NewEntity(161, 0, 1, 500),
-        level: level,
-    }
-    rightBorder.Fill(&termloop.Cell{ Bg: termloop.ColorBlue })
-    level.AddEntity(&rightBorder)
 }
 
 func renderBar(level *termloop.BaseLevel) {
@@ -134,7 +71,7 @@ func (ball *Ball) Tick(event termloop.Event) {
 }
 
 func (ball *Ball) handleDeathBorderCollision(collision termloop.Physical) {
-    if _, entityOk := collision.(*DeathBorder); entityOk {
+    if _, entityOk := collision.(*borders.DeathBorder); entityOk {
         isDead = true
         return
     }
@@ -151,7 +88,7 @@ func (ball *Ball) handleBarCollision(collision termloop.Physical) {
 
 func (ball *Ball) handleTopBorderCollision(collision termloop.Physical) {
     ball.prevX, ball.prevY = ball.Position()
-    if _, ok := collision.(*TopBorder); ok {
+    if _, ok := collision.(*borders.TopBorder); ok {
         isBarCollided = false
         x := getNextXPosition(ball.prevX)
         ball.SetPosition(x, ball.prevY + 1)
@@ -160,7 +97,7 @@ func (ball *Ball) handleTopBorderCollision(collision termloop.Physical) {
 
 func (ball *Ball) handleLeftBorderCollision(collision termloop.Physical) {
     ball.prevX, ball.prevY = ball.Position()
-    if _, ok := collision.(*LeftBorder); ok {
+    if _, ok := collision.(*borders.LeftBorder); ok {
         isRightCollided = false
         y := getNextYPositionForCollisions(ball.prevY)
         ball.SetPosition(ball.prevX + 2, y)
@@ -169,7 +106,7 @@ func (ball *Ball) handleLeftBorderCollision(collision termloop.Physical) {
 
 func (ball *Ball) handleRightBorderCollision(collision termloop.Physical) {
     ball.prevX, ball.prevY = ball.Position()
-    if _, ok := collision.(*RightBorder); ok {
+    if _, ok := collision.(*borders.RightBorder); ok {
         isRightCollided = true
         y := getNextYPositionForCollisions(ball.prevY)
         ball.SetPosition(ball.prevX - 2, y)
@@ -222,10 +159,7 @@ func main() {
         Bg: termloop.ColorBlack,
         Fg: termloop.ColorBlack,
     })
-    renderTopBorder(level)
-    renderDeathBorder(level)
-    renderLeftBorder(level)
-    renderRightBorder(level)
+    borders.RenderBorders(level)
     renderBar(level)
     renderBall(level)
     
