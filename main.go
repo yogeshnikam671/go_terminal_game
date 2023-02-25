@@ -58,16 +58,20 @@ func renderBall(level *termloop.BaseLevel) {
 
 func (ball *Ball) Tick(event termloop.Event) {
     if(isDead) {
-        deathLevel := termloop.NewBaseLevel(termloop.Cell{
-            Ch: ':',
-        })
-        game.Screen().SetLevel(deathLevel)
+        displayDeathScreen()
         return
     }
     ball.prevX, ball.prevY = ball.Position()
     x := getNextXPosition(ball.prevX)
     y := getNextYPositionForTravel(ball.prevY)
     ball.SetPosition(x, y)
+}
+
+func displayDeathScreen() {
+    deathLevel := termloop.NewBaseLevel(termloop.Cell{
+            Ch: ':',
+    })
+    game.Screen().SetLevel(deathLevel)
 }
 
 func (ball *Ball) handleDeathBorderCollision(collision termloop.Physical) {
