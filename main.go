@@ -1,8 +1,6 @@
 package main
 
 import (
-	//"math/rand"
-
 	"github.com/JoelOtter/termloop"
 )
 
@@ -10,7 +8,9 @@ import (
 // :set shiftwidth=4
 // :set expandtab
 
+var game *termloop.Game = termloop.NewGame()
 var isRightCollided bool = false
+var isDead bool = false 
 
 type Bar struct {
     *termloop.Rectangle
@@ -41,53 +41,11 @@ func renderBorders(level *termloop.BaseLevel) {
 
 func renderDeathBorder(level *termloop.BaseLevel) {
     deathBorder := DeathBorder {
-        Entity: termloop.NewEntity(1, 50, 500, 1),
+        Entity: termloop.NewEntity(0, 50, 500, 1),
         level: level,
     }
     deathBorder.Fill(&termloop.Cell { Bg: termloop.ColorRed})
     level.AddEntity(&deathBorder)
-}
-
-func renderBall(level *termloop.BaseLevel) {
-    ball := Ball {
-        Entity: termloop.NewEntity(1, 1, 2, 1),
-        level: level,
-    }
-    ball.Fill(&termloop.Cell { Bg: termloop.ColorWhite})
-    level.AddEntity(&ball)
-}
-
-func (ball *Ball) Tick(event termloop.Event) {
-    ball.prevX, ball.prevY = ball.Position()
-    var x int
-    if(isRightCollided) {
-        x = ball.prevX - 2 
-    } else {
-        x = ball.prevX + 2 
-    }
-    ball.SetPosition(x, ball.prevY + 1)
-}
-
-func (ball *Ball) Collide(collision termloop.Physical) {
-    // Check if it's a Rectangle we're colliding with
-    ball.prevX, ball.prevY = ball.Position()
-    if _, ok := collision.(*termloop.Rectangle); ok {
-        var x int
-        if(ball.prevX > 55) {
-            isRightCollided = true
-            x = ball.prevX - 2 
-        } else {
-            isRightCollided = false
-            x = ball.prevX + 2 
-        }
-        
-        if(ball.prevY > 20) {
-            ball.SetPosition(1,1)
-            return
-        }
-
-        ball.SetPosition(x, ball.prevY + 5)
-    }
 }
 
 func renderBar(level *termloop.BaseLevel) {
@@ -110,8 +68,73 @@ func (bar *Bar) Tick(event termloop.Event) {
    } 
 }
 
+func renderBall(level *termloop.BaseLevel) {
+    ball := Ball {
+        Entity: termloop.NewEntity(1, 1, 2, 1),
+        level: level,
+    }
+    ball.Fill(&termloop.Cell { Bg: termloop.ColorWhite})
+    level.AddEntity(&ball)
+}
+
+func (ball *Ball) Tick(event termloop.Event) {
+    if(isDead) {
+        deathLevel := termloop.NewBaseLevel(termloop.Cell{
+            Ch: ':',
+        })
+        game.Screen().SetLevel(deathLevel)
+        return
+    }
+    ball.prevX, ball.prevY = ball.Position()
+    var x int
+    if(isRightCollided) {
+        x = ball.prevX - 2 
+    } else {
+        x = ball.prevX + 2 
+    }
+    ball.SetPosition(x, ball.prevY + 1)
+}
+
+func handleDeathBorderCollision(collision termloop.Physical) {
+    if _, entityOk := collision.(*DeathBorder); entityOk {
+        isDead = true
+        return
+    }
+}
+
+func handleBarCollision(collision termloop.Physical) {
+    if _, entityOk := collision.(*Bar); entityOk {
+        game.Log("It is a bar collision")
+        return
+    }
+}
+
+func (ball *Ball) handleBorderCollision(collision termloop.Physical) {
+    // Check if it's a Rectangle we're colliding with
+    ball.prevX, ball.prevY = ball.Position()
+    if _, ok := collision.(*termloop.Rectangle); ok {
+        var x int
+        if(ball.prevX > 55) {
+            isRightCollided = true
+            x = ball.prevX - 2 
+        } else {
+            isRightCollided = false
+            x = ball.prevX + 2 
+        }
+
+        ball.SetPosition(x, ball.prevY + 5)
+    }
+}
+
+func (ball *Ball) Collide(collision termloop.Physical) {
+    handleDeathBorderCollision(collision)
+    handleBarCollision(collision) 
+    ball.handleBorderCollision(collision) 
+}
+
 func main() {
-    game := termloop.NewGame()
+    //game := termloop.NewGame()
+    game.SetDebugOn(true)
     game.Screen().SetFps(30)
     level := termloop.NewBaseLevel(termloop.Cell{
         Bg: termloop.ColorBlack,
