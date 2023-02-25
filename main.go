@@ -10,6 +10,8 @@ import (
 
 var game *termloop.Game = termloop.NewGame()
 var isRightCollided bool = false
+var isBarCollided bool = false
+var isTopBorderCollided bool = true
 var isDead bool = false 
 
 type Bar struct {
@@ -33,10 +35,25 @@ type DeathBorder struct {
     level *termloop.BaseLevel
 }
 
+type TopBorder struct {
+    *termloop.Entity
+    prevX int
+    prevY int
+    level *termloop.BaseLevel
+}
+
 func renderBorders(level *termloop.BaseLevel) {
-    level.AddEntity(termloop.NewRectangle(0, 0, 500, 1, termloop.ColorBlue))
     level.AddEntity(termloop.NewRectangle(0, 0, 1, 500, termloop.ColorBlue))
     level.AddEntity(termloop.NewRectangle(161, 0, 1, 500, termloop.ColorBlue))
+}
+
+func renderTopBorder(level *termloop.BaseLevel) {
+    topBorder := TopBorder {
+        Entity: termloop.NewEntity(0, 0, 500, 1),
+        level: level,
+    }
+    topBorder.Fill(&termloop.Cell { Bg: termloop.ColorBlue})
+    level.AddEntity(&topBorder)
 }
 
 func renderDeathBorder(level *termloop.BaseLevel) {
@@ -92,7 +109,13 @@ func (ball *Ball) Tick(event termloop.Event) {
     } else {
         x = ball.prevX + 2 
     }
-    ball.SetPosition(x, ball.prevY + 1)
+    var y int
+    if(isBarCollided) {
+        y = ball.prevY - 1
+    } else {
+        y = ball.prevY + 1
+    }
+    ball.SetPosition(x, y)
 }
 
 func handleDeathBorderCollision(collision termloop.Physical) {
@@ -102,10 +125,31 @@ func handleDeathBorderCollision(collision termloop.Physical) {
     }
 }
 
-func handleBarCollision(collision termloop.Physical) {
+func (ball *Ball) handleBarCollision(collision termloop.Physical) {
     if _, entityOk := collision.(*Bar); entityOk {
-        game.Log("It is a bar collision")
-        return
+        isBarCollided = true
+        ball.prevX, ball.prevY = ball.Position()
+        var x int
+        if(isRightCollided) {
+            x = ball.prevX - 2
+        } else {
+            x = ball.prevX + 2
+        }
+        ball.SetPosition(x, ball.prevY - 5)
+    }
+}
+
+func (ball *Ball) handleTopBorderCollision(collision termloop.Physical) {
+    ball.prevX, ball.prevY = ball.Position()
+    if _, ok := collision.(*TopBorder); ok {
+        isBarCollided = false
+        var x int
+        if(isRightCollided) {
+            x = ball.prevX - 2
+        } else {
+            x = ball.prevX + 2
+        }
+        ball.SetPosition(x, ball.prevY + 1)
     }
 }
 
@@ -121,15 +165,23 @@ func (ball *Ball) handleBorderCollision(collision termloop.Physical) {
             isRightCollided = false
             x = ball.prevX + 2 
         }
+        
+        var y int
+        if(isBarCollided) {
+            y = ball.prevY - 5
+        } else {
+            y = ball.prevY + 5
+        }
 
-        ball.SetPosition(x, ball.prevY + 5)
+        ball.SetPosition(x, y)
     }
 }
 
 func (ball *Ball) Collide(collision termloop.Physical) {
     handleDeathBorderCollision(collision)
-    handleBarCollision(collision) 
+    ball.handleBarCollision(collision) 
     ball.handleBorderCollision(collision) 
+    ball.handleTopBorderCollision(collision)
 }
 
 func main() {
@@ -141,6 +193,7 @@ func main() {
         Fg: termloop.ColorBlack,
     })
     renderBorders(level)
+    renderTopBorder(level)
     renderDeathBorder(level)
     renderBar(level)
     renderBall(level)
