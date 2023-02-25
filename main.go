@@ -157,7 +157,8 @@ func getNextXPosition(currentX int) int {
 }
 
 func main() {
-    game.SetDebugOn(true)
+    // Turn this true if you want to add any game.Log("..") for debugging
+    //game.SetDebugOn(true)
     game.Screen().SetFps(30)
     level := termloop.NewBaseLevel(termloop.Cell{
         Bg: termloop.ColorBlack,
