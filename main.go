@@ -86,7 +86,8 @@ func (ball *Ball) handleBarCollision(collision termloop.Physical) {
         isBarCollided = true
         ball.prevX, ball.prevY = ball.Position()
         x := getNextXPosition(ball.prevX)
-        ball.SetPosition(x, ball.prevY - 5)
+        y := getNextYPositionForCollisions(ball.prevY)
+        ball.SetPosition(x, y)
     }
 }
 
@@ -95,7 +96,8 @@ func (ball *Ball) handleTopBorderCollision(collision termloop.Physical) {
     if _, ok := collision.(*borders.TopBorder); ok {
         isBarCollided = false
         x := getNextXPosition(ball.prevX)
-        ball.SetPosition(x, ball.prevY + 1)
+        y := getNextYPositionForTravel(ball.prevY)
+        ball.SetPosition(x, y)
     }
 }
 
@@ -103,8 +105,9 @@ func (ball *Ball) handleLeftBorderCollision(collision termloop.Physical) {
     ball.prevX, ball.prevY = ball.Position()
     if _, ok := collision.(*borders.LeftBorder); ok {
         isRightCollided = false
+        x := getNextXPosition(ball.prevX)
         y := getNextYPositionForCollisions(ball.prevY)
-        ball.SetPosition(ball.prevX + 2, y)
+        ball.SetPosition(x, y)
     }
 }
 
@@ -112,8 +115,9 @@ func (ball *Ball) handleRightBorderCollision(collision termloop.Physical) {
     ball.prevX, ball.prevY = ball.Position()
     if _, ok := collision.(*borders.RightBorder); ok {
         isRightCollided = true
+        x := getNextXPosition(ball.prevX)
         y := getNextYPositionForCollisions(ball.prevY)
-        ball.SetPosition(ball.prevX - 2, y)
+        ball.SetPosition(x, y)
     }
 }
 
