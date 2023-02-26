@@ -1,8 +1,10 @@
 package main
 
 import (
-        "github.com/yogeshnikam671/go_term_game/borders" 
+	"math/rand"
+	"time"
 	"github.com/JoelOtter/termloop"
+	"github.com/yogeshnikam671/go_term_game/borders"
 )
 
 // :set tabstop=4
@@ -49,8 +51,10 @@ func (bar *Bar) Tick(event termloop.Event) {
 }
 
 func renderBall(level *termloop.BaseLevel) {
+    ballStartX := getRandomTravelValue()
+    ballStartY := getRandomTravelValue()
     ball := Ball {
-        Entity: termloop.NewEntity(1, 1, 2, 1),
+        Entity: termloop.NewEntity(ballStartX, ballStartY, 2, 1),
         level: level,
     }
     ball.Fill(&termloop.Cell { Bg: termloop.ColorWhite})
@@ -65,7 +69,7 @@ func (ball *Ball) Tick(event termloop.Event) {
         return
     }
     ball.prevX, ball.prevY = ball.Position()
-    x := getNextXPosition(ball.prevX)
+    x := getNextXPositionForTravel(ball.prevX)
     y := getNextYPositionForTravel(ball.prevY)
     ball.SetPosition(x, y)
 }
@@ -89,7 +93,7 @@ func (ball *Ball) handleBarCollision(collision termloop.Physical) {
     if _, entityOk := collision.(*Bar); entityOk {
         isBarCollided = true
         ball.prevX, ball.prevY = ball.Position()
-        x := getNextXPosition(ball.prevX)
+        x := getNextXPositionForCollisions(ball.prevX)
         y := getNextYPositionForCollisions(ball.prevY)
         ball.SetPosition(x, y)
     }
@@ -99,7 +103,7 @@ func (ball *Ball) handleTopBorderCollision(collision termloop.Physical) {
     ball.prevX, ball.prevY = ball.Position()
     if _, ok := collision.(*borders.TopBorder); ok {
         isBarCollided = false
-        x := getNextXPosition(ball.prevX)
+        x := getNextXPositionForCollisions(ball.prevX)
         y := getNextYPositionForTravel(ball.prevY)
         ball.SetPosition(x, y)
     }
@@ -109,7 +113,7 @@ func (ball *Ball) handleLeftBorderCollision(collision termloop.Physical) {
     ball.prevX, ball.prevY = ball.Position()
     if _, ok := collision.(*borders.LeftBorder); ok {
         isRightCollided = false
-        x := getNextXPosition(ball.prevX)
+        x := getNextXPositionForCollisions(ball.prevX)
         y := getNextYPositionForCollisions(ball.prevY)
         ball.SetPosition(x, y)
     }
@@ -121,7 +125,7 @@ func (ball *Ball) handleRightBorderCollision(collision termloop.Physical) {
     // This is essentially checking if collision is of type RightBorder. Refer - https://go.dev/tour/methods/15
     if _, ok := collision.(*borders.RightBorder); ok {
         isRightCollided = true
-        x := getNextXPosition(ball.prevX)
+        x := getNextXPositionForCollisions(ball.prevX)
         y := getNextYPositionForCollisions(ball.prevY)
         ball.SetPosition(x, y)
     }
@@ -141,9 +145,9 @@ func (ball *Ball) Collide(collision termloop.Physical) {
 func getNextYPositionForCollisions(currentY int) int {
     var y int
     if(isBarCollided) {
-        y = currentY - 5
+        y = currentY - 2
     } else {
-        y = currentY + 5
+        y = currentY + 2
     }
     return y
 }
@@ -158,7 +162,17 @@ func getNextYPositionForTravel(currentY int) int {
     return y
 }
 
-func getNextXPosition(currentX int) int {
+func getNextXPositionForCollisions(currentX int) int {
+    var x int
+    if(isRightCollided) {
+        x = currentX - getRandomTravelValue()
+    } else {
+        x = currentX + getRandomTravelValue()
+    }
+    return x
+}
+
+func getNextXPositionForTravel(currentX int) int {
     var x int
     if(isRightCollided) {
         x = currentX - 2
@@ -166,6 +180,13 @@ func getNextXPosition(currentX int) int {
         x = currentX + 2
     }
     return x
+}
+
+func getRandomTravelValue() int {
+    min := 1
+    max := 10
+    rand.Seed(time.Now().UnixNano())
+    return rand.Intn(max - min) + min
 }
 
 func main() {
