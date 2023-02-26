@@ -36,6 +36,7 @@ func renderBar(level *termloop.BaseLevel) {
     level.AddEntity(&bar)
 }
 
+// Tick method is executed continuously by termloop for the provided pointer receiver type
 func (bar *Bar) Tick(event termloop.Event) {
    if(event.Type == termloop.EventKey) {  // If it is a keyboard event
         bar.prevX, bar.prevY = bar.Position()
@@ -56,6 +57,8 @@ func renderBall(level *termloop.BaseLevel) {
     level.AddEntity(&ball)
 }
 
+// Tick method is executed continuously by termloop for the provided pointer receiver type
+// Here we are using this method to make the ball travel in the desired directions
 func (ball *Ball) Tick(event termloop.Event) {
     if(isDead) {
         displayDeathScreen()
@@ -74,6 +77,7 @@ func displayDeathScreen() {
     game.Screen().SetLevel(deathLevel)
 }
 
+// collision handler methods
 func (ball *Ball) handleDeathBorderCollision(collision termloop.Physical) {
     if _, entityOk := collision.(*borders.DeathBorder); entityOk {
         isDead = true
@@ -113,6 +117,8 @@ func (ball *Ball) handleLeftBorderCollision(collision termloop.Physical) {
 
 func (ball *Ball) handleRightBorderCollision(collision termloop.Physical) {
     ball.prevX, ball.prevY = ball.Position()
+    // execute this only if the collision is with RightBorder entity
+    // This is essentially checking if collision is of type RightBorder. Refer - https://go.dev/tour/methods/15
     if _, ok := collision.(*borders.RightBorder); ok {
         isRightCollided = true
         x := getNextXPosition(ball.prevX)
@@ -121,6 +127,8 @@ func (ball *Ball) handleRightBorderCollision(collision termloop.Physical) {
     }
 }
 
+// This method is executed by termloop whenever there is any collision of 
+// the provided pointer receiver variable (Ball in this case) with anything rendered on screen
 func (ball *Ball) Collide(collision termloop.Physical) {
     ball.handleBarCollision(collision) 
     ball.handleTopBorderCollision(collision)
